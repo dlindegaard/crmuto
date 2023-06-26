@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>crmuto</title>
+    <!-- Link to stylesheet style.css -->
+    <link rel="stylesheet" href="style.css">
+    <script type="module">
+        import { app } from './js/app.js';
+        window.app = app;
+    </script>
+    <script src="external/alpine.js" defer></script>
+</head>
+
+<!-- Application is using Alpine.js -->
+
+<body>
+    <div x-data="app" x-init="init()">
+        <ul>
+            <li><a href="#" @click.prevent="setActiveView('api-key-view')">Set API key</a></li>
+            <li><a href="#" @click.prevent="setActiveView('contacts-view')">Contacts</a></li>
+            <li><a href="#" @click.prevent="setActiveView('lists-view')">Lists</a></li>
+        </ul>
+        <div x-show="activeView==='api-key-view'">
+            <label>
+                API Key:
+                <input type="text" x-model="apiKey" />
+            </label>
+            <button @click="setApiKey()">Set API Key</button>
+            <button @click="unsetApiKey()">Remove API Key</button>
+        </div>
+        <div x-show="activeView==='contacts-view'">
+            <h1>Contacts</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="user in users" :key="user.email">
+                        <tr>
+                            <td x-text="user.email"></td>
+                            <td x-text="user.firstName"></td>
+                            <td x-text="user.lastName"></td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+            <button @click="prevUsers()" :disabled="currentPage === 0">Previous</button>
+            <button @click="nextUsers()" :disabled="currentPage >= totalPages - 1">Next</button>
+            <p>Page: <span x-text="currentPage + 1"></span> / <span x-text="totalPages"></span></p>
+        </div>
+        <div x-show="activeView==='lists-view'">
+            <h1>Lists</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Unique Subscribers</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="list in lists" :key="list.id">
+                        <tr>
+                            <td x-text="list.name"></td>
+                            <td x-text="list.meta.uniqueSubscribers"></td>
+                            <td>
+                                <button @click="createDealsForList(list.id)">Create Deals for all contacts</button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+        <div x-show="isLoading" class="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+    </div>
+</body>
+
+</html>
