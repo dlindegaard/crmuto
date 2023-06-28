@@ -3,7 +3,7 @@ crmuto aims to automate redundant and manual CRM tasks, while also establishing 
 
 The first CRM that is partially supported is [Brevo](https://www.brevo.com/).
 
-When using crmuto, all data is handled locally on your computer and the the CRM system via the API. No data is sent to any third party.
+When using crmuto, all data is handled locally on your computer and the CRM system via the API. No data is sent to any third party.
 ## Current features
 - **Create deals automatically from lists**
 - Basic view of contacts

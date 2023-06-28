@@ -41,11 +41,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <template x-for="user in users" :key="user.email">
+                    <template x-for="contact in contacts" :key="contact.email">
                         <tr>
-                            <td x-text="user.email"></td>
-                            <td x-text="user.firstName"></td>
-                            <td x-text="user.lastName"></td>
+                            <td x-text="contact.email"></td>
+                            <td x-text="contact.firstName"></td>
+                            <td x-text="contact.lastName"></td>
                         </tr>
                     </template>
                 </tbody>

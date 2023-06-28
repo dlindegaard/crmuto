@@ -61,7 +61,7 @@ class BrevoAPI implements CrmAPI {
             attributes: {}
         };
     }
-    async createDeal(name: string, user?: User, attributes?: { [key: string]: string }): Promise<Deal> {
+    async createDeal(name: string, contact?: Contact, attributes?: { [key: string]: string }): Promise<Deal> {
         await this.delayIfNeeded();
 
         const headers = {
@@ -89,11 +89,11 @@ class BrevoAPI implements CrmAPI {
 
             const responseData = await response.json();
 
-            if (user) {
+            if (contact) {
                 // Get class name
                 const className = this.constructor.name;
 
-                let brevoId = user.id.find(id => id.crm == className);
+                let brevoId = contact.id.find(id => id.crm == className);
 
                 if (brevoId != undefined) {
                     await this.linkContactWithDeal(responseData.id, brevoId.id);
@@ -144,7 +144,7 @@ class BrevoAPI implements CrmAPI {
             throw new Error('Error:' + error);
         }
     }
-    getUser(id: string): Promise<User> {
+    getContact(id: string): Promise<Contact> {
         throw new Error('Method not implemented.');
     }
     async getLists(): Promise<List[]> {
@@ -205,19 +205,19 @@ class BrevoAPI implements CrmAPI {
     getList(id: string): Promise<List> {
         throw new Error('Method not implemented.');
     }
-    async getUsersByList(listId: string): Promise<User[]> {
+    async getContactsByList(listId: string): Promise<Contact[]> {
         const headers = {
             'Accept': 'application/json',
             'api-key': this.apiKey
         };
 
-        let users: User[] = [];
+        let contacts: Contact[] = [];
         let count = 0;
 
         do {
             await this.delayIfNeeded();
             try {
-                const url = `${this.url}/contacts/lists/${listId}/contacts?limit=50&offset=${users.length == 0 ? 0 : users.length - 1}&sort=desc`;
+                const url = `${this.url}/contacts/lists/${listId}/contacts?limit=50&offset=${contacts.length == 0 ? 0 : contacts.length - 1}&sort=desc`;
 
                 // Use Fetch API to get the data
                 const response = await fetch(url, {
@@ -232,28 +232,28 @@ class BrevoAPI implements CrmAPI {
                 const data = await response.json();
 
                 // The data is a json object with a data property ("contacts") holding the contacts in an array
-                // iterate through the data and create a User object for each user and add it to the array
-                for (let user of data.contacts) {
+                // iterate through the data and create a Contact object for each contact and add it to the array
+                for (let contact of data.contacts) {
 
                     let attributes: { [key: string]: string } = {};
 
-                    // loop through user attributes adding them to the attributes object - except keys "FIRSTNAME" and "LASTNAME"
-                    for (let key in user.attributes) {
+                    // loop through contact attributes adding them to the attributes object - except keys "FIRSTNAME" and "LASTNAME"
+                    for (let key in contact.attributes) {
                         if (key != "FIRSTNAME" && key != "LASTNAME") {
-                            attributes[key] = user.attributes[key];
+                            attributes[key] = contact.attributes[key];
                         }
                     }
 
                     // Get class name
                     const className = this.constructor.name;
 
-                    users.push({
-                        email: user.email,
-                        id: [{ id: user.id, crm: className }], // Assuming the CRM name is 'Brevo'
-                        firstName: user.attributes.FIRSTNAME,
-                        lastName: user.attributes.LASTNAME,
-                        attributes: user.attributes,
-                        listIds: user.listIds.map(String) // Convert number list IDs to string
+                    contacts.push({
+                        email: contact.email,
+                        id: [{ id: contact.id, crm: className }], // Assuming the CRM name is 'Brevo'
+                        firstName: contact.attributes.FIRSTNAME,
+                        lastName: contact.attributes.LASTNAME,
+                        attributes: contact.attributes,
+                        listIds: contact.listIds.map(String) // Convert number list IDs to string
                     });
                 }
 
@@ -263,11 +263,11 @@ class BrevoAPI implements CrmAPI {
                 console.error('Error:', error);
                 throw new Error('Error:' + error);
             }
-        } while (users.length < count);
+        } while (contacts.length < count);
 
-        return users;
+        return contacts;
     }
-    async getUsers(limit: number, offset: number): Promise<UsersResult> {
+    async getContacts(limit: number, offset: number): Promise<ContactsResult> {
         await this.delayIfNeeded();
 
         const headers = {
@@ -275,7 +275,7 @@ class BrevoAPI implements CrmAPI {
             'api-key': this.apiKey
         };
 
-        let users: User[] = [];
+        let contacts: Contact[] = [];
         let count = 0;
 
         try {
@@ -293,28 +293,28 @@ class BrevoAPI implements CrmAPI {
             const data = await response.json();
 
             // The data is a json object with a data property ("contacts") holding the contacts in an array
-            // iterate through the data and create a User object for each user and add it to the array
-            for (let user of data.contacts) {
+            // iterate through the data and create a Contact object for each contact and add it to the array
+            for (let contact of data.contacts) {
 
                 let attributes: { [key: string]: string } = {};
 
-                // loop through user attributes adding them to the attributes object - except keys "FIRSTNAME" and "LASTNAME"
-                for (let key in user.attributes) {
+                // loop through contact attributes adding them to the attributes object - except keys "FIRSTNAME" and "LASTNAME"
+                for (let key in contact.attributes) {
                     if (key != "FIRSTNAME" && key != "LASTNAME") {
-                        attributes[key] = user.attributes[key];
+                        attributes[key] = contact.attributes[key];
                     }
                 }
 
                 // Get class name
                 const className = this.constructor.name;
 
-                users.push({
-                    email: user.email,
-                    id: [{ id: user.id, crm: className }], // Assuming the CRM name is 'Brevo'
-                    firstName: user.attributes.FIRSTNAME,
-                    lastName: user.attributes.LASTNAME,
-                    attributes: user.attributes,
-                    listIds: user.listIds.map(String) // Convert number list IDs to string
+                contacts.push({
+                    email: contact.email,
+                    id: [{ id: contact.id, crm: className }], // Assuming the CRM name is 'Brevo'
+                    firstName: contact.attributes.FIRSTNAME,
+                    lastName: contact.attributes.LASTNAME,
+                    attributes: contact.attributes,
+                    listIds: contact.listIds.map(String) // Convert number list IDs to string
                 });
             }
 
@@ -325,7 +325,7 @@ class BrevoAPI implements CrmAPI {
             throw new Error('Error:' + error);
         }
 
-        return { users: users, count: count };
+        return { contacts: contacts, count: count };
     }
 }
 

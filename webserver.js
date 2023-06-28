@@ -1,5 +1,4 @@
-// create Node.js web server that serves the static files of the public folder
-
+// Node.js web server that serves the static files of the public folder
 const express = require('express');
 
 const app = express();

@@ -1,15 +1,15 @@
 // All of the interfaces used in the project are based on the Brevo/SendInBlue API documentation
 interface CrmAPI {
-    getUser(id: string): Promise<User>;
+    getContact(id: string): Promise<Contact>;
     getLists(): Promise<List[]>;
     getList(id: string): Promise<List>;
-    getUsersByList(listId: string): Promise<User[]>;
-    getUsers(limit: number, offset: number): Promise<UsersResult>;
+    getContactsByList(listId: string): Promise<Contact[]>;
+    getContacts(limit: number, offset: number): Promise<ContactsResult>;
     createDeal(deal: string): Promise<Deal>;
     getDeal(id: string): Promise<Deal>;
 }
 
-interface User {
+interface Contact {
     email: string;
     id: Id[];
     firstName: string;
@@ -18,8 +18,8 @@ interface User {
     listIds: string[];
 }
 
-interface UsersResult {
-    users: User[];
+interface ContactsResult {
+    contacts: Contact[];
     count: number;
 }
 

@@ -3,15 +3,25 @@ import { BrevoAPI } from './Brevo';
 type ActionType = "notLoading" | "timerSet" | "loading";
 
 export const app = {
-    activeView: 'no-view',
-    _isLoading: 'notLoading' as ActionType,
-    apiKey: '',
     brevo: null as BrevoAPI | null,
-    users: [] as User[],
-    usersPerPage: 30,
-    currentPage: 0,
-    totalPages: 0,
-    lists: [] as List[],
+    init: async function () {
+        const storedApiKey = localStorage.getItem('apiKey');
+        if (storedApiKey) {
+            this.apiKey = storedApiKey;
+            try {
+                this.brevo = new BrevoAPI(this.apiKey, 'http://localhost:5000');
+                await this.brevo.getContacts(1, 0);
+                this.setActiveView('contacts-view');
+            } catch (error) {
+                this.brevo = null;
+                this.setActiveView('api-key-view');
+            }
+        } else {
+            this.setActiveView('api-key-view');
+        }
+    },
+    //#region Loading  
+    _isLoading: 'notLoading' as ActionType,
     _loadingTimeout: -1,
     get isLoading() {
         return this._isLoading === 'loading';
@@ -32,11 +42,14 @@ export const app = {
             }
         }
     },
+    //#endregion
+    //#region Api-key
+    apiKey: '',
     setApiKey: async function () {
         localStorage.setItem('apiKey', this.apiKey);
         try {
             this.brevo = new BrevoAPI(this.apiKey, 'http://localhost:5000');
-            await this.brevo.getUsers(1, 0);
+            await this.brevo.getContacts(1, 0);
             alert("Valid API key");
         } catch (error) {
             this.brevo = null;
@@ -48,55 +61,51 @@ export const app = {
         localStorage.setItem('apiKey', '');
         this.apiKey = '';
         this.lists = [];
-        this.users = [];
+        this.contacts = [];
     },
-    init: async function () {
-        const storedApiKey = localStorage.getItem('apiKey');
-        if (storedApiKey) {
-            this.apiKey = storedApiKey;
-            try {
-                this.brevo = new BrevoAPI(this.apiKey, 'http://localhost:5000');
-                await this.brevo.getUsers(1, 0);
-                this.setActiveView('contacts-view');
-            } catch (error) {
-                this.brevo = null;
-                this.setActiveView('api-key-view');
-            }
-        } else {
-            this.setActiveView('api-key-view');
-        }
-    },
+    //#endregion    
+    //#region View control
+    activeView: 'no-view',
     setActiveView(view: string) {
         this.activeView = view;
         if (view === 'contacts-view') {
-            this.fetchUsers();
+            this.fetchContacts();
         }
         if (view === 'lists-view') {
             this.fetchLists();
         }
     },
-    async fetchUsers(page: number = 0) {
+    //#endregion
+    //#region Contacts 
+    contacts: [] as Contact[],
+    contactsPerPage: 30,
+    currentPage: 0,
+    totalPages: 0,
+    async fetchContacts(page: number = 0) {
         this.isLoading = true;
-        const offset = page * this.usersPerPage;
-        const usersResult = await this.brevo?.getUsers(this.usersPerPage, offset);
-        if (usersResult) {
-            this.users = usersResult.users;
-            this.totalPages = Math.ceil(usersResult.count / this.usersPerPage);
+        const offset = page * this.contactsPerPage;
+        const contactsResult = await this.brevo?.getContacts(this.contactsPerPage, offset);
+        if (contactsResult) {
+            this.contacts = contactsResult.contacts;
+            this.totalPages = Math.ceil(contactsResult.count / this.contactsPerPage);
         }
         this.isLoading = false;
     },
-    async nextUsers() {
+    async nextContacts() {
         if (this.currentPage < this.totalPages - 1) {
             this.currentPage++;
-            await this.fetchUsers(this.currentPage);
+            await this.fetchContacts(this.currentPage);
         }
     },
-    async prevUsers() {
+    async prevContacts() {
         if (this.currentPage > 0) {
             this.currentPage--;
-            await this.fetchUsers(this.currentPage);
+            await this.fetchContacts(this.currentPage);
         }
     },
+    //#endregion
+    //#region Lists
+    lists: [] as List[],
     async fetchLists() {
         this.isLoading = true;
         try {
@@ -110,13 +119,13 @@ export const app = {
     async createDealsForList(listId: string) {
         try {
             this.isLoading = true;
-            // Fetch users in the list
-            const users = await this.brevo?.getUsersByList(listId);
-            // Create a deal for each user
-            if (users) {
-                for (const user of users) {
+            // Fetch contacts in the list
+            const contacts = await this.brevo?.getContactsByList(listId);
+            // Create a deal for each contact
+            if (contacts) {
+                for (const contact of contacts) {
                     // Note: you need to provide a deal name and additional deal attributes here
-                    await this.brevo?.createDeal("Automated deal", user);
+                    await this.brevo?.createDeal("Automated deal", contact);
                 }
             }
             this.isLoading = false;
@@ -125,4 +134,5 @@ export const app = {
             alert('Error creating deals');
         }
     }
+    //#endregion    
 };
