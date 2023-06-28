@@ -109,6 +109,32 @@ export const app = {
             await this.fetchContacts(this.currentPage);
         }
     },
+    async createDealsForAllContacts() {
+        try {
+            this.isLoading = true;
+    
+            let allContacts = [...this.contacts];
+            if (this.totalPages > 1) {
+                for (let page = 1; page < this.totalPages; page++) {
+                    const contactsResult = await this.brevo?.getContacts(this.contactsPerPage, page * this.contactsPerPage);
+                    if (contactsResult && contactsResult.contacts) {
+                        allContacts = [...allContacts, ...contactsResult.contacts];
+                    }
+                }
+            }
+    
+            // Create a deal for each contact
+            for (const contact of allContacts) {
+                // Note: you need to provide a deal name and additional deal attributes here
+                await this.brevo?.createDeal("Automated deal", contact);
+            }
+    
+            this.isLoading = false;
+            alert('Deals created successfully');
+        } catch (error) {
+            alert('Error creating deals');
+        }
+    },
     //#region Filtering
     activeFilters: [] as Array<{ id: string, name: string, type: 'in' | 'notIn' }>,
     selectedFilter: '',
@@ -166,29 +192,11 @@ export const app = {
         }
         this.isLoading = false;
     },
-    async createDealsForList(listId: string) {
-        try {
-            this.isLoading = true;
-            // Fetch contacts in the list
-            const contacts = await this.brevo?.getContactsByList(listId);
-            // Create a deal for each contact
-            if (contacts) {
-                for (const contact of contacts) {
-                    // Note: you need to provide a deal name and additional deal attributes here
-                    await this.brevo?.createDeal("Automated deal", contact);
-                }
-            }
-            this.isLoading = false;
-            alert('Deals created successfully');
-        } catch (error) {
-            alert('Error creating deals');
-        }
-    },
     seeContactsOfList: function (id: string, name: string) {
         this.initContactsFiltering();
         this.editFilters.push({ id: id, name: name, type: 'in' });
         this.activeView = 'contacts-view';
         this.applyFilters(); // Apply the filters and fetch the contacts
     }
-    //#endregion    
+    //#endregion        
 };

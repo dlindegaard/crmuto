@@ -81,6 +81,7 @@
                 </div>
                 <h4 class="mt-3" x-show="editFilters.length==0">No active filters</h4>
             </div>
+            <button class="mt-3" @click="createDealsForAllContacts()">Create Deals for all contacts</button>
             <p class="mt-3">Total number of contacts: <span x-text="contacts.length"></span></p>
             <table class="mt-3">
                 <thead>
@@ -120,7 +121,6 @@
                             <td x-text="list.name"></td>
                             <td x-text="list.meta.uniqueSubscribers"></td>
                             <td>
-                                <button @click="createDealsForList(list.id)">Create Deals for all contacts</button>
                                 <button @click="seeContactsOfList(list.id, list.name)">See contacts</button>
                             </td>
                         </tr>
