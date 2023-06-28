@@ -1,7 +1,5 @@
 import { BrevoAPI } from './Brevo';
 
-type ActionType = "notLoading" | "timerSet" | "loading";
-
 export const app = {
     brevo: null as BrevoAPI | null,
     init: async function () {
@@ -21,7 +19,7 @@ export const app = {
         }
     },
     //#region Loading  
-    _isLoading: 'notLoading' as ActionType,
+    _isLoading: 'notLoading' as "notLoading" | "timerSet" | "loading",
     _loadingTimeout: -1,
     get isLoading() {
         return this._isLoading === 'loading';
@@ -81,13 +79,21 @@ export const app = {
     contactsPerPage: 30,
     currentPage: 0,
     totalPages: 0,
+    contactsViewState: 'normal' as 'normal' | 'filtering',
     async fetchContacts(page: number = 0) {
         this.isLoading = true;
         const offset = page * this.contactsPerPage;
-        const contactsResult = await this.brevo?.getContacts(this.contactsPerPage, offset);
+        let contactsResult;
+        if (this.activeFilters.length > 0) {
+            const inLists = this.activeFilters.filter(filter => filter.type === 'in').map(filter => filter.id);
+            const notInLists = this.activeFilters.filter(filter => filter.type === 'notIn').map(filter => filter.id);
+            contactsResult = await this.brevo?.getFilteredContacts(inLists, notInLists);
+        } else {
+            contactsResult = await this.brevo?.getContacts(this.contactsPerPage, offset);
+        }
         if (contactsResult) {
             this.contacts = contactsResult.contacts;
-            this.totalPages = Math.ceil(contactsResult.count / this.contactsPerPage);
+            this.totalPages = Math.ceil(contactsResult.count / Math.max(this.contactsPerPage, this.contacts.length));
         }
         this.isLoading = false;
     },
@@ -103,6 +109,50 @@ export const app = {
             await this.fetchContacts(this.currentPage);
         }
     },
+    //#region Filtering
+    activeFilters: [] as Array<{ id: string, name: string, type: 'in' | 'notIn' }>,
+    selectedFilter: '',
+    editFilters: [] as Array<{ id: string, name: string, type: 'in' | 'notIn' }>,
+    filterChangeTracker: 0,
+    get changesToFilters() {
+        // check if there are any changes to the filters
+        if (this.activeFilters.length !== this.editFilters.length) {
+            return true;
+        }
+        for (let i = 0; i < this.activeFilters.length; i++) {
+            const activeFilter = this.activeFilters[i];
+            const editFilter = this.editFilters[i];
+            if (activeFilter.id != editFilter.id || activeFilter.type != editFilter.type) {
+                return true;
+            }
+        }
+        return false;
+    },
+    addFilter: function () {
+        const list = this.lists.find(list => list.id == this.selectedFilter);
+        if (list) {
+            this.editFilters.push({ id: list.id, name: list.name, type: 'in' });
+        }
+    },
+    applyFilters: function () {
+        // duplicate the filters
+        this.activeFilters = this.editFilters.map(filter => ({ ...filter }));
+        this.fetchContacts();
+    },
+    removeFilter: function (index: number) {
+        this.editFilters.splice(index, 1);
+    },
+    initContactsFiltering: function () {
+        this.fetchLists();
+        this.contactsViewState = 'filtering';
+    },
+    cancelContactsFiltering: function () {
+        this.contactsViewState = 'normal';
+        this.editFilters = [];
+        this.activeFilters = [];
+        this.fetchContacts();
+    },
+    //#endregion
     //#endregion
     //#region Lists
     lists: [] as List[],

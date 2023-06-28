@@ -12,8 +12,13 @@ body {
     padding: 20px;
 }
 
+.highlight {
+    font-weight: bold;
+    color: lime;
+}
+
 a {
-    color: #00ff00;
+    color: lime;
     text-decoration: none;
     transition: color 0.3s;
 }
@@ -23,7 +28,7 @@ a:hover {
 }
 
 h1 {
-    color: #00ff00;
+    color: lime;
     margin-bottom: 10px;
 }
 
@@ -41,16 +46,17 @@ label {
     margin-bottom: 5px;
 }
 
-input[type="text"] {
+input[type="text"],
+select {
     background: #333;
-    border: 1px solid #00ff00;
+    border: 1px solid lime;
     color: #fff;
     padding: 5px 10px;
     width: 300px;
 }
 
 button {
-    background: #00ff00;
+    background: lime;
     border: none;
     color: #000;
     cursor: pointer;
@@ -73,7 +79,7 @@ table {
 }
 
 th, td {
-    border: 1px solid #00ff00;
+    border: 1px solid lime;
     padding: 10px;
     text-align: left;
 }
@@ -102,7 +108,7 @@ tbody tr:hover {
 
 .spinner {
     border: 16px solid #333;
-    border-top: 16px solid #00ff00;
+    border-top: 16px solid lime;
     border-radius: 50%;
     width: 120px;
     height: 120px;
@@ -112,4 +118,102 @@ tbody tr:hover {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* margin modifiers */
+.mt-1 {
+    margin-top: 5px;
+}
+
+.mb-1 {
+    margin-bottom: 5px;
+}
+
+.ml-1 {
+    margin-left: 5px;
+}
+
+.mr-1 {
+    margin-right: 5px;
+}
+
+.mt-2 {
+    margin-top: 10px;
+}
+
+.mb-2 {
+    margin-bottom: 10px;
+}
+
+.ml-2 {
+    margin-left: 10px;
+}
+
+.mr-2 {
+    margin-right: 10px;
+}
+
+.mt-3 {
+    margin-top: 15px;
+}
+
+.mb-3 {
+    margin-bottom: 15px;
+}
+
+.ml-3 {
+    margin-left: 15px;
+}
+
+.mr-3 {
+    margin-right: 15px;
+}
+
+/* padding modifiers */
+.pt-1 {
+    padding-top: 5px;
+}
+
+.pb-1 {
+    padding-bottom: 5px;
+}
+
+.pl-1 {
+    padding-left: 5px;
+}
+
+.pr-1 {
+    padding-right: 5px;
+}
+
+.pt-2 {
+    padding-top: 10px;
+}
+
+.pb-2 {
+    padding-bottom: 10px;
+}
+
+.pl-2 {
+    padding-left: 10px;
+}
+
+.pr-2 {
+    padding-right: 10px;
+}
+
+.pt-3 {
+    padding-top: 15px;
+}
+
+.pb-3 {
+    padding-bottom: 15px;
+}
+
+.pl-3 {
+    padding-left: 15px;
+}
+
+.pr-3 {
+    padding-right: 15px;
 }

@@ -327,6 +327,28 @@ class BrevoAPI implements CrmAPI {
 
         return { contacts: contacts, count: count };
     }
+    async getFilteredContacts(inLists: string[], notInLists: string[]): Promise<ContactsResult> {
+        // First, fetch all contacts that are in the inLists.
+        let inListContacts: Contact[] = [];
+        for (const listId of inLists) {
+            const contacts = await this.getContactsByList(listId);
+            inListContacts = inListContacts.concat(contacts);
+        }
+
+        // Fetch all contacts that are in the notInLists.
+        let notInListContacts: Contact[] = [];
+        for (const listId of notInLists) {
+            const contacts = await this.getContactsByList(listId);
+            notInListContacts = notInListContacts.concat(contacts);
+        }
+
+        // Remove any duplicates from both lists.
+        inListContacts = inListContacts.filter(contact => !notInListContacts.some(c => c.id[0].id === contact.id[0].id));
+        let count = inListContacts.length;
+
+        // Finally, return the contacts that are in the inLists but not in the notInLists.
+        return { contacts: inListContacts, count: count };
+    }
 }
 
 export { BrevoAPI };

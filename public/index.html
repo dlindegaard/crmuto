@@ -32,7 +32,57 @@
         </div>
         <div x-show="activeView==='contacts-view'">
             <h1>Contacts</h1>
-            <table>
+            <div x-show="contactsViewState=='normal'">
+                <button class="mt-3" @click="initContactsFiltering">Filter contacts</button>
+            </div>
+            <div x-show="contactsViewState=='filtering'">
+                <button class="mt-3" @click="cancelContactsFiltering">Cancel filtering</button>
+                <div class="mt-3">
+                    <label for="filterSelect">Add List:</label>
+                    <select id="filterSelect" x-model="selectedFilter">
+                        <option value="" disabled selected>Select a list</option>
+                        <template x-for="list in lists" :key="list.id">
+                            <option x-text="list.name" :value="list.id"></option>
+                        </template>
+                    </select>
+                    <button @click="addFilter()">Add list to filter</button>
+                </div>
+                <div class="mt-3" x-show="editFilters.length>0">
+                    <h3 class="mb-2">Lists in filter:</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>List</th>
+                                <th>Condition</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(filter, index) in editFilters" :key="index">
+                                <tr>
+                                    <td x-text="filter.name"></td>
+                                    <td>
+                                        <select x-model="filter.type" @change="filterChangeTracker++">
+                                            <option value="in">Contacts in list</option>
+                                            <option value="notIn">Contact is NOT in list</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <button @click="removeFilter(index)">Remove</button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                    <label>
+                        <span x-show="changesToFilters" class="highlight">Changes have been made to the filter, do you want to apply them?</span>
+                        <button class="mt-3" @click="applyFilters()">Apply filter(s)</button>
+                    </label>
+                </div>
+                <h4 class="mt-3" x-show="editFilters.length==0">No active filters</h4>
+            </div>
+            <p class="mt-3">Total number of contacts: <span x-text="contacts.length"></span></p>
+            <table class="mt-3">
                 <thead>
                     <tr>
                         <th>Email</th>
@@ -41,7 +91,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <template x-for="contact in contacts" :key="contact.email">
+                    <template x-for="contact in contacts">
                         <tr>
                             <td x-text="contact.email"></td>
                             <td x-text="contact.firstName"></td>
@@ -50,9 +100,9 @@
                     </template>
                 </tbody>
             </table>
-            <button @click="prevUsers()" :disabled="currentPage === 0">Previous</button>
+            <button class="mt-3" @click="prevUsers()" :disabled="currentPage === 0">Previous</button>
             <button @click="nextUsers()" :disabled="currentPage >= totalPages - 1">Next</button>
-            <p>Page: <span x-text="currentPage + 1"></span> / <span x-text="totalPages"></span></p>
+            <p class="mt-3">Page: <span x-text="currentPage + 1"></span> / <span x-text="totalPages"></span></p>
         </div>
         <div x-show="activeView==='lists-view'">
             <h1>Lists</h1>

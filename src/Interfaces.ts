@@ -5,6 +5,7 @@ interface CrmAPI {
     getList(id: string): Promise<List>;
     getContactsByList(listId: string): Promise<Contact[]>;
     getContacts(limit: number, offset: number): Promise<ContactsResult>;
+    getFilteredContacts(inLists: string[], notInLists: string[]) : Promise<ContactsResult>;
     createDeal(deal: string): Promise<Deal>;
     getDeal(id: string): Promise<Deal>;
 }
