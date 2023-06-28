@@ -183,6 +183,12 @@ export const app = {
         } catch (error) {
             alert('Error creating deals');
         }
+    },
+    seeContactsOfList: function (id: string, name: string) {
+        this.initContactsFiltering();
+        this.editFilters.push({ id: id, name: name, type: 'in' });
+        this.activeView = 'contacts-view';
+        this.applyFilters(); // Apply the filters and fetch the contacts
     }
     //#endregion    
 };
