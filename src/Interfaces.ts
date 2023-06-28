@@ -8,6 +8,7 @@ interface CrmAPI {
     getFilteredContacts(inLists: string[], notInLists: string[]) : Promise<ContactsResult>;
     createDeal(deal: string): Promise<Deal>;
     getDeal(id: string): Promise<Deal>;
+    getPipelines(): Promise<Pipeline[]>;
 }
 
 interface Contact {
@@ -39,4 +40,15 @@ interface List {
 interface Deal {
     id: string;
     attributes: { [key: string]: string };
+}
+
+interface Stage {
+    id: string;
+    name: string;
+}
+
+interface Pipeline {
+    name: string;
+    id: string;
+    stages: Stage[];
 }

@@ -349,6 +349,57 @@ class BrevoAPI implements CrmAPI {
         // Finally, return the contacts that are in the inLists but not in the notInLists.
         return { contacts: inListContacts, count: count };
     }
+
+    async getPipelines(): Promise<Pipeline[]> {
+        await this.delayIfNeeded();
+    
+        const headers = {
+            'Accept': 'application/json',
+            'api-key': this.apiKey
+        };
+    
+        let pipelines: Pipeline[] = [];
+    
+        try {
+            const url = `${this.url}/crm/pipeline/details/all`;
+            // Use Fetch API to get the data
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: headers
+            });
+    
+            if (!response.ok) {
+                throw new Error('HTTP error ' + response.status);
+            }
+    
+            const data = await response.json();
+    
+            // The data is an array of pipeline objects
+            // iterate through the data and create a Pipeline object for each pipeline and add it to the array
+            for (let pipeline of data) {
+                let stages: Stage[] = [];
+    
+                for (let stage of pipeline.stages) {
+                    stages.push({
+                        id: stage.id,
+                        name: stage.name
+                    });
+                }
+    
+                pipelines.push({
+                    name: pipeline.pipeline_name,
+                    id: pipeline.pipeline,
+                    stages: stages
+                });
+            }
+    
+        } catch (error) {
+            console.error('Error:', error);
+            throw new Error('Error:' + error);
+        }
+    
+        return pipelines;
+    }    
 }
 
 export { BrevoAPI };

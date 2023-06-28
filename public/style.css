@@ -151,6 +151,7 @@ tbody tr:hover {
     color: #fff;
     padding: 20px;
     width: 300px;
+    min-width: fit-content;
     text-align: center;
 }
 

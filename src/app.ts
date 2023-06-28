@@ -74,6 +74,9 @@ export const app = {
         if (view === 'lists-view') {
             this.fetchLists();
         }
+        if (view === 'pipelines-view') {
+            this.fetchPipelines();
+        }
     },
     //#endregion
     //#region Contacts 
@@ -81,6 +84,7 @@ export const app = {
     contactsPerPage: 30,
     currentPage: 0,
     totalPages: 0,
+    totalNumberOfContacts: 0,
     contactsViewState: 'normal' as 'normal' | 'filtering',
     async fetchContacts(page: number = 0) {
         this.isLoading = true;
@@ -97,6 +101,7 @@ export const app = {
         }
         if (contactsResult) {
             this.contacts = contactsResult.contacts;
+            this.totalNumberOfContacts = contactsResult.count;
             this.totalPages = Math.ceil(contactsResult.count / Math.max(this.contactsPerPage, this.contacts.length));
         }
         this.isLoading = false;
@@ -113,11 +118,18 @@ export const app = {
             await this.fetchContacts(this.currentPage);
         }
     },
+    dealCreationModalVisible: false,
+    dealPipelineId: "" as string,
+    dealStageId: "" as string,
+    openDealCreationModal() {
+        this.fetchPipelines();
+        this.dealPipelineId = "";
+        this.dealStageId = "";
+        this.dealCreationModalVisible = true;
+    },
     async createDealsForAllContacts() {
-        //const confirmation = confirm(`Are you sure you want to create deals?`);
-        const confirmation = await this.confirm.show("Are you sure you want to create deals?");
-        if (confirmation == false) {
-            this.alert.show("Creation of deals cancelled");
+        if (this.dealPipelineId == "" || this.dealStageId == "") {
+            this.alert.show("Deal creation failed. Please select a pipeline and stage.");
             return;
         }
 
@@ -140,7 +152,7 @@ export const app = {
             let numberOfDealsCreated = 1;
             for (const contact of allContacts) {
                 this.loadingText = `Creating deal ${numberOfDealsCreated++} of ${allContacts.length}`;
-                await this.brevo?.createDeal("Automated deal", contact);
+                await this.brevo?.createDeal("Automated deal", contact, { pipeline: this.dealPipelineId, deal_stage: this.dealStageId });
             }
 
             this.isLoading = false;
@@ -214,11 +226,26 @@ export const app = {
         this.applyFilters(); // Apply the filters and fetch the contacts
     },
     //#endregion        
+    //#region Pipelines
+    pipelines: [] as Pipeline[],
+    async fetchPipelines() {
+        this.isLoading = true;
+        this.loadingText = 'Fetching pipelines';
+        try {
+            if (this.brevo !== null)
+                this.pipelines = await this.brevo?.getPipelines();
+            console.log(this.pipelines);
+        } catch (error) {
+            this.alert.show("Error fetching pipelines");
+        }
+        this.isLoading = false;
+    },
+    //#endregion
     //#region Custom alert and confirm
     alert: {
         visible: false,
         message: '',
-        show(message : string) {
+        show(message: string) {
             this.message = message;
             this.visible = true;
         }
@@ -228,11 +255,11 @@ export const app = {
         visible: false,
         message: '',
         resolve: null as Function | null,
-        show(message : string) {
+        show(message: string) {
             return new Promise((resolve) => {
                 this.message = message;
                 this.visible = true;
-                this.resolve = (value : boolean) => {
+                this.resolve = (value: boolean) => {
                     this.visible = false;
                     resolve(value);
                 };
