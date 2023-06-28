@@ -6,10 +6,12 @@ interface CrmAPI {
     getContactsByList(listId: string): Promise<Contact[]>;
     getContacts(limit: number, offset: number): Promise<ContactsResult>;
     getFilteredContacts(inLists: string[], notInLists: string[]) : Promise<ContactsResult>;
-    createDeal(deal: string): Promise<Deal>;
+    createDeal(name: string, contact?: Contact, attributes?: { [key: string]: string }): Promise<Deal>;
     getDeal(id: string): Promise<Deal>;
     getPipelines(): Promise<Pipeline[]>;
 }
+
+type CrmAPIInfo = { name: string, _constructor: { new(apiKey: string, proxyUrl: string): CrmAPI; } };
 
 interface Contact {
     email: string;

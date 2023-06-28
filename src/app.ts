@@ -1,17 +1,31 @@
 import { BrevoAPI } from './Brevo';
+import './Interfaces';
 
 export const app = {
-    brevo: null as BrevoAPI | null,
+    apis: [{ name: "Brevo", _constructor: BrevoAPI }] as CrmAPIInfo[],
+    apiName: "" as string,
+    apiInstance: null as CrmAPI | null,
     init: async function () {
+
         const storedApiKey = localStorage.getItem('apiKey');
-        if (storedApiKey) {
+        const storedApiName = localStorage.getItem('apiName');
+
+        if (storedApiKey && storedApiName) {
             this.apiKey = storedApiKey;
+            this.apiName = storedApiName;
+
             try {
-                this.brevo = new BrevoAPI(this.apiKey, 'http://localhost:5000');
-                await this.brevo.getContacts(1, 0);
-                this.setActiveView('contacts-view');
+                let _constructor = this.apis.find(api => api.name === storedApiName)?._constructor;
+                if (_constructor) {
+                    this.apiInstance = new _constructor(this.apiKey, 'http://localhost:5000');
+                    await this.apiInstance.getContacts(1, 0);
+                    this.setActiveView('contacts-view');
+                } else {
+                    this.apiInstance = null;
+                    this.setActiveView('api-key-view');
+                }
             } catch (error) {
-                this.brevo = null;
+                this.apiInstance = null;
                 this.setActiveView('api-key-view');
             }
         } else {
@@ -45,23 +59,41 @@ export const app = {
     //#endregion
     //#region Api-key
     apiKey: '',
-    setApiKey: async function () {
+    setupApi: async function () {
         localStorage.setItem('apiKey', this.apiKey);
+        localStorage.setItem('apiName', this.apiName);
         try {
-            this.brevo = new BrevoAPI(this.apiKey, 'http://localhost:5000');
-            await this.brevo.getContacts(1, 0);
-            this.alert.show("Valid API key");
+            let _constructor = this.apis.find(api => api.name === this.apiName)?._constructor;
+            if (_constructor) {
+                this.apiInstance = new _constructor(this.apiKey, 'http://localhost:5000');
+                await this.apiInstance.getContacts(1, 0);
+                this.alert.show("Valid API key");
+            } else {
+                this.alert.show("No constructor found for this API");
+            }
         } catch (error) {
-            this.brevo = null;
+            this.apiInstance = null;
             this.alert.show("Invalid API key");
         }
 
     },
-    unsetApiKey: function () {
+    disconnectApi: async function () {
+        const confirmation = await this.confirm.show('Are you sure you want to disconnect the API?');
+
+        if (!confirmation) {
+            return;
+        }
+
         localStorage.setItem('apiKey', '');
+        localStorage.setItem('apiName', '');
         this.apiKey = '';
+        this.apiName = '';
+        this.apiInstance = null;
         this.lists = [];
         this.contacts = [];
+        this.pipelines = [];
+
+        this.alert.show("API disconnected");
     },
     //#endregion    
     //#region View control
@@ -95,9 +127,9 @@ export const app = {
             this.loadingText = 'Filtering contacts. This may take a while.';
             const inLists = this.activeFilters.filter(filter => filter.type === 'in').map(filter => filter.id);
             const notInLists = this.activeFilters.filter(filter => filter.type === 'notIn').map(filter => filter.id);
-            contactsResult = await this.brevo?.getFilteredContacts(inLists, notInLists);
+            contactsResult = await this.apiInstance?.getFilteredContacts(inLists, notInLists);
         } else {
-            contactsResult = await this.brevo?.getContacts(this.contactsPerPage, offset);
+            contactsResult = await this.apiInstance?.getContacts(this.contactsPerPage, offset);
         }
         if (contactsResult) {
             this.contacts = contactsResult.contacts;
@@ -141,7 +173,7 @@ export const app = {
             if (this.totalPages > 1) {
                 for (let page = 1; page < this.totalPages; page++) {
                     this.loadingText = `Creating deals for page ${page + 1} of ${this.totalPages}`;
-                    const contactsResult = await this.brevo?.getContacts(this.contactsPerPage, page * this.contactsPerPage);
+                    const contactsResult = await this.apiInstance?.getContacts(this.contactsPerPage, page * this.contactsPerPage);
                     if (contactsResult && contactsResult.contacts) {
                         allContacts = [...allContacts, ...contactsResult.contacts];
                     }
@@ -152,7 +184,7 @@ export const app = {
             let numberOfDealsCreated = 1;
             for (const contact of allContacts) {
                 this.loadingText = `Creating deal ${numberOfDealsCreated++} of ${allContacts.length}`;
-                await this.brevo?.createDeal("Automated deal", contact, { pipeline: this.dealPipelineId, deal_stage: this.dealStageId });
+                await this.apiInstance?.createDeal("Automated deal", contact, { pipeline: this.dealPipelineId, deal_stage: this.dealStageId });
             }
 
             this.isLoading = false;
@@ -212,8 +244,8 @@ export const app = {
         this.isLoading = true;
         this.loadingText = 'Fetching lists';
         try {
-            if (this.brevo !== null)
-                this.lists = await this.brevo?.getLists();
+            if (this.apiInstance !== null)
+                this.lists = await this.apiInstance?.getLists();
         } catch (error) {
             this.alert.show("Error fetching lists");
         }
@@ -232,9 +264,8 @@ export const app = {
         this.isLoading = true;
         this.loadingText = 'Fetching pipelines';
         try {
-            if (this.brevo !== null)
-                this.pipelines = await this.brevo?.getPipelines();
-            console.log(this.pipelines);
+            if (this.apiInstance !== null)
+                this.pipelines = await this.apiInstance?.getPipelines();
         } catch (error) {
             this.alert.show("Error fetching pipelines");
         }

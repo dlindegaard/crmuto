@@ -18,18 +18,26 @@
 <body>
     <div x-data="app" x-init="init()">
         <ul>
-            <li><a href="#" @click.prevent="setActiveView('api-key-view')">Set API key</a></li>
+            <li><a href="#" @click.prevent="setActiveView('api-key-view')">Setup CRM API</a></li>
             <li><a href="#" @click.prevent="setActiveView('contacts-view')">Contacts</a></li>
             <li><a href="#" @click.prevent="setActiveView('lists-view')">Lists</a></li>
             <li><a href="#" @click.prevent="setActiveView('pipelines-view')">Pipelines</a></li>
         </ul>
         <div x-show="activeView==='api-key-view'">
-            <label>
+            <label for="crmPicker">Select CRM API:</label>
+            <select id="crmPicker" x-model="apiName">
+                <option value="" disabled selected>None selected</option>
+                <template x-for="api in apis">
+                    <option x-text="api.name" :value="api.name"></option>
+                </template>
+            </select>
+            <label class="mt-3 mb-3">
                 API Key:
+                <br>
                 <input type="text" x-model="apiKey" />
             </label>
-            <button @click="setApiKey()">Set API Key</button>
-            <button @click="unsetApiKey()">Remove API Key</button>
+            <button x-show="apiInstance==null && apiName!='' && apiKey!=''" @click="setupApi()">Setup API</button>
+            <button x-show="apiInstance!=null" @click="disconnectApi()">Disconnect from API</button>
         </div>
         <div x-show="activeView==='contacts-view'">
             <h1>Contacts</h1>
@@ -177,13 +185,15 @@
                 </select>
                 <label class="mt-2" for="dealStageId">2. Choose stage</label>
                 <select id="dealStageId" x-model="dealStageId">
-                    <option value="" disabled selected x-text="dealPipelineId=='' ? 'Not applicable yet' : 'Select a stage'">Select a stage</option>
-                    <template x-for="stage in pipelines.find(pipeline => pipeline.id == dealPipelineId).stages">
+                    <option value="" disabled selected
+                        x-text="dealPipelineId=='' ? 'Not applicable yet' : 'Select a stage'">Select a stage</option>
+                    <template x-for="stage in pipelines.find(pipeline => pipeline.id == dealPipelineId)?.stages">
                         <option x-text="stage.name" :value="stage.id"></option>
                     </template>
                 </select>
                 <br>
-                <button class="mt-3" x-show="dealPipelineId!='' && dealStageId!=''" @click="dealCreationModalVisible=false;createDealsForAllContacts()">Create deals</button>
+                <button class="mt-3" x-show="dealPipelineId!='' && dealStageId!=''"
+                    @click="dealCreationModalVisible=false;createDealsForAllContacts()">Create deals</button>
             </div>
         </div>
     </div>

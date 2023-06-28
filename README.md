@@ -3,8 +3,10 @@ crmuto aims to automate redundant and manual CRM tasks, while also establishing 
 
 The first CRM that is partially supported is [Brevo](https://www.brevo.com/).
 
-When using crmuto, all data is handled locally on your computer and the CRM system via the API. No data is sent to any third party.
+When using crmuto, all data is handled between your local computer and the CRM system via the API. No data is sent to any third party.
 ## Current features
+### Version 0.4
+- Application code (app.ts) is prepared for multiple CRM systems
 ### Version 0.3
 - Pipelines view added
 - When creating deals, you now choose a pipeline and stage
