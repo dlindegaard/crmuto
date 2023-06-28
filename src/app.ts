@@ -50,10 +50,10 @@ export const app = {
         try {
             this.brevo = new BrevoAPI(this.apiKey, 'http://localhost:5000');
             await this.brevo.getContacts(1, 0);
-            alert("Valid API key");
+            this.alert.show("Valid API key");
         } catch (error) {
             this.brevo = null;
-            alert("Invalid API key");
+            this.alert.show("Invalid API key");
         }
 
     },
@@ -90,7 +90,7 @@ export const app = {
         if (this.activeFilters.length > 0) {
             this.loadingText = 'Filtering contacts. This may take a while.';
             const inLists = this.activeFilters.filter(filter => filter.type === 'in').map(filter => filter.id);
-            const notInLists = this.activeFilters.filter(filter => filter.type === 'notIn').map(filter => filter.id);            
+            const notInLists = this.activeFilters.filter(filter => filter.type === 'notIn').map(filter => filter.id);
             contactsResult = await this.brevo?.getFilteredContacts(inLists, notInLists);
         } else {
             contactsResult = await this.brevo?.getContacts(this.contactsPerPage, offset);
@@ -114,10 +114,17 @@ export const app = {
         }
     },
     async createDealsForAllContacts() {
+        //const confirmation = confirm(`Are you sure you want to create deals?`);
+        const confirmation = await this.confirm.show("Are you sure you want to create deals?");
+        if (confirmation == false) {
+            this.alert.show("Creation of deals cancelled");
+            return;
+        }
+
         try {
             this.isLoading = true;
             this.loadingText = 'Creating deals';
-    
+
             let allContacts = [...this.contacts];
             if (this.totalPages > 1) {
                 for (let page = 1; page < this.totalPages; page++) {
@@ -128,18 +135,18 @@ export const app = {
                     }
                 }
             }
-    
+
             // Create a deal for each contact
             let numberOfDealsCreated = 1;
             for (const contact of allContacts) {
                 this.loadingText = `Creating deal ${numberOfDealsCreated++} of ${allContacts.length}`;
                 await this.brevo?.createDeal("Automated deal", contact);
             }
-    
+
             this.isLoading = false;
-            alert('Deals created successfully');
+            this.alert.show('Deals created successfully');
         } catch (error) {
-            alert('Error creating deals');
+            this.alert.show('Error creating deals');
         }
     },
     //#region Filtering
@@ -196,7 +203,7 @@ export const app = {
             if (this.brevo !== null)
                 this.lists = await this.brevo?.getLists();
         } catch (error) {
-            alert("Error fetching lists");
+            this.alert.show("Error fetching lists");
         }
         this.isLoading = false;
     },
@@ -205,6 +212,32 @@ export const app = {
         this.editFilters.push({ id: id, name: name, type: 'in' });
         this.activeView = 'contacts-view';
         this.applyFilters(); // Apply the filters and fetch the contacts
-    }
+    },
     //#endregion        
+    //#region Custom alert and confirm
+    alert: {
+        visible: false,
+        message: '',
+        show(message : string) {
+            this.message = message;
+            this.visible = true;
+        }
+    },
+
+    confirm: {
+        visible: false,
+        message: '',
+        resolve: null as Function | null,
+        show(message : string) {
+            return new Promise((resolve) => {
+                this.message = message;
+                this.visible = true;
+                this.resolve = (value : boolean) => {
+                    this.visible = false;
+                    resolve(value);
+                };
+            });
+        }
+    },
+    //#endregion
 };

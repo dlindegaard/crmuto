@@ -75,7 +75,8 @@
                         </tbody>
                     </table>
                     <label>
-                        <span x-show="changesToFilters" class="highlight">Changes have been made to the filter, do you want to apply them?</span>
+                        <span x-show="changesToFilters" class="highlight">Changes have been made to the filter, do you
+                            want to apply them?</span>
                         <button class="mt-3" @click="applyFilters()">Apply filter(s)</button>
                     </label>
                 </div>
@@ -132,6 +133,20 @@
             <div class="spinner"></div>
             <div x-show="loadingText!=''" class="loading-text" x-text="loadingText"></div>
         </div>
+        <div x-show="alert.visible" class="modal">
+            <div class="modal-content">
+                <p x-text="alert.message"></p>
+                <button @click="alert.visible = false">OK</button>
+            </div>
+        </div>
+        <div x-show="confirm.visible" class="modal">
+            <div class="modal-content">
+                <p x-text="confirm.message"></p>
+                <button @click="confirm.resolve(true)">Yes</button>
+                <button @click="confirm.resolve(false)">No</button>
+            </div>
+        </div>
+
     </div>
 </body>
 
