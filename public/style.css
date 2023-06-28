@@ -104,6 +104,11 @@ tbody tr:hover {
     top: 0;
     width: 100vw;
     z-index: 999;
+    flex-direction: column;
+}
+
+.loading-text {
+    padding-top: 50px;
 }
 
 .spinner {

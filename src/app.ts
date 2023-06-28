@@ -21,6 +21,7 @@ export const app = {
     //#region Loading  
     _isLoading: 'notLoading' as "notLoading" | "timerSet" | "loading",
     _loadingTimeout: -1,
+    loadingText: '',
     get isLoading() {
         return this._isLoading === 'loading';
     },
@@ -34,6 +35,7 @@ export const app = {
             }
         } else if (!value) {
             this._isLoading = 'notLoading';
+            this.loadingText = '';
             if (this._loadingTimeout !== -1) {
                 window.clearTimeout(this._loadingTimeout);
                 this._loadingTimeout = -1;
@@ -82,11 +84,13 @@ export const app = {
     contactsViewState: 'normal' as 'normal' | 'filtering',
     async fetchContacts(page: number = 0) {
         this.isLoading = true;
+        this.loadingText = 'Fetching contacts';
         const offset = page * this.contactsPerPage;
         let contactsResult;
         if (this.activeFilters.length > 0) {
+            this.loadingText = 'Filtering contacts. This may take a while.';
             const inLists = this.activeFilters.filter(filter => filter.type === 'in').map(filter => filter.id);
-            const notInLists = this.activeFilters.filter(filter => filter.type === 'notIn').map(filter => filter.id);
+            const notInLists = this.activeFilters.filter(filter => filter.type === 'notIn').map(filter => filter.id);            
             contactsResult = await this.brevo?.getFilteredContacts(inLists, notInLists);
         } else {
             contactsResult = await this.brevo?.getContacts(this.contactsPerPage, offset);
@@ -112,10 +116,12 @@ export const app = {
     async createDealsForAllContacts() {
         try {
             this.isLoading = true;
+            this.loadingText = 'Creating deals';
     
             let allContacts = [...this.contacts];
             if (this.totalPages > 1) {
                 for (let page = 1; page < this.totalPages; page++) {
+                    this.loadingText = `Creating deals for page ${page + 1} of ${this.totalPages}`;
                     const contactsResult = await this.brevo?.getContacts(this.contactsPerPage, page * this.contactsPerPage);
                     if (contactsResult && contactsResult.contacts) {
                         allContacts = [...allContacts, ...contactsResult.contacts];
@@ -124,8 +130,9 @@ export const app = {
             }
     
             // Create a deal for each contact
+            let numberOfDealsCreated = 1;
             for (const contact of allContacts) {
-                // Note: you need to provide a deal name and additional deal attributes here
+                this.loadingText = `Creating deal ${numberOfDealsCreated++} of ${allContacts.length}`;
                 await this.brevo?.createDeal("Automated deal", contact);
             }
     
@@ -184,6 +191,7 @@ export const app = {
     lists: [] as List[],
     async fetchLists() {
         this.isLoading = true;
+        this.loadingText = 'Fetching lists';
         try {
             if (this.brevo !== null)
                 this.lists = await this.brevo?.getLists();

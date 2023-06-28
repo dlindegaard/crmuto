@@ -130,6 +130,7 @@
         </div>
         <div x-show="isLoading" class="loading-overlay">
             <div class="spinner"></div>
+            <div x-show="loadingText!=''" class="loading-text" x-text="loadingText"></div>
         </div>
     </div>
 </body>
