@@ -5,33 +5,45 @@ The first CRM that is partially supported is [Brevo](https://www.brevo.com/).
 
 When using crmuto, all data is handled locally on your computer and the CRM system via the API. No data is sent to any third party.
 ## Current features
-- **Create deals automatically from lists**
+### Version 0.2
+- Filter contacts by multiple lists (in or not in)
+- Create deals for the filtered contacts
+- Minor improvements:
+    - Context specific loading text (e.g. "Loading contacts" instead of "Creating deals")
+    - Better visuals for confirm and alert boxes
+    - Changed User interface to Contact
+
+### Version 0.1
+- Create deals automatically from lists
 - Basic view of contacts
 - Basic view of lists
 
-
-# Usage
-
-## The fundamentals
+## Overall structure of the application
 The application consists of:
 
 1. A local proxy server that handles the communication with the CRM system.
     - The proxy server is needed to avoid CORS issues. It can either be run via Electron or as standalone Node.js applicaiton.
 2. A local web server that serves the web application.
     - The web application can either be served via Electron or via an express web server. 
-## Basic Development Environment
+# Usage
+## Pre-requisites
+Make sure you have Node.js, npm, and TypeScript installed.
+
+Installing TypeScript globally:
+```bash
+npm i -g typescript
+```
+## Option 1: Basic Development Environment
 ```bash
 npm i
 npm run dev
 ```
 Access the application via http://localhost:3000
 
-## Electron Application
-### What is Electron?
+## Option 2: Electron Application
 Electron is a framework that allows you to build cross platform desktop applications using web technologies. It is based on Chromium and Node.js.
-## Why Electron?
 
-*Easy to use - handle data locally and directly with the CRM!*
+**Why Electron?**
 
 Most CRM systems do not allow you to use the API directly from the browser due to CORS restrictions. Electron allows you to run a local proxy server that can communicate with the CRM system. The web application can then communicate with the proxy server without any CORS issues.
 
