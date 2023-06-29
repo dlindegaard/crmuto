@@ -162,8 +162,8 @@
                     </template>
                 </tbody>
             </table>
-            <button class="mt-3" @click="prevUsers()" :disabled="currentPage === 0">Previous</button>
-            <button @click="nextUsers()" :disabled="currentPage >= totalPages - 1">Next</button>
+            <button class="mt-3" @click="prevContacts()" :disabled="currentPage === 0">Previous</button>
+            <button @click="nextContacts()" :disabled="currentPage >= totalPages - 1">Next</button>
             <p class="mt-3">Page: <span x-text="currentPage + 1"></span> / <span x-text="totalPages"></span></p>
         </div>
         <div x-show="activeView==='lists-view'">
