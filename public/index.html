@@ -46,50 +46,101 @@
             </div>
             <div x-show="contactsViewState=='filtering'">
                 <button class="mt-3" @click="cancelContactsFiltering">Cancel filtering</button>
-                <div class="mt-3">
-                    <label for="filterSelect">Add List:</label>
-                    <select id="filterSelect" x-model="selectedFilter">
-                        <option value="" disabled selected>Select a list</option>
-                        <template x-for="list in lists" :key="list.id">
-                            <option x-text="list.name" :value="list.id"></option>
-                        </template>
-                    </select>
-                    <button @click="addFilter()">Add list to filter</button>
-                </div>
-                <div class="mt-3" x-show="editFilters.length>0">
-                    <h3 class="mb-2">Lists in filter:</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>List</th>
-                                <th>Condition</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template x-for="(filter, index) in editFilters" :key="index">
-                                <tr>
-                                    <td x-text="filter.name"></td>
-                                    <td>
-                                        <select x-model="filter.type" @change="filterChangeTracker++">
-                                            <option value="in">Contacts in list</option>
-                                            <option value="notIn">Contact is NOT in list</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <button @click="removeFilter(index)">Remove</button>
-                                    </td>
-                                </tr>
+                <div class="listFiltering">
+                    <div class="mt-3">
+                        <label for="filterSelect">Add List:</label>
+                        <select id="filterSelect" x-model="selectedFilter">
+                            <option value="" disabled selected>Select a list</option>
+                            <template x-for="list in lists" :key="list.id">
+                                <option x-text="list.name" :value="list.id"></option>
                             </template>
-                        </tbody>
-                    </table>
-                    <label x-show="changesToFilters">
-                        <span class="highlight">Changes have been made to the filter, do you
-                            want to apply them?</span>
-                        <button class="mt-3" @click="applyFilters()">Apply filter(s)</button>
-                    </label>
+                        </select>
+                        <button @click="addListFilter()">Add list to filter</button>
+                    </div>
+                    <div class="mt-3" x-show="editListFilters.length>0">
+                        <h3 class="mb-2">Lists in filter:</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>List</th>
+                                    <th>Condition</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="(filter, index) in editListFilters" :key="index">
+                                    <tr>
+                                        <td x-text="filter.name"></td>
+                                        <td>
+                                            <select x-model="filter.type" @change="filterChangeTracker++">
+                                                <option value="in">Contacts in list</option>
+                                                <option value="notIn">Contact is NOT in list</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <button @click="removeListFilter(index)">Remove</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <h4 class="mt-3" x-show="editFilters.length==0">No active filters</h4>
+                <div class="attributeFiltering">
+                    <div x-show="editListFilters.length>0">
+                        <label class="mt-3" for="attributeSelect">Add attribute filter:</label>
+                        <select id="attributeSelect" x-model="selectedAttribute">
+                            <option value="" disabled selected>Select an attribute</option>
+                            <template x-for="attribute in uniqueAttributes">
+                                <option x-text="attribute" :value="attribute"></option>
+                            </template>
+                        </select>
+                        <button @click="addAttributeToFilter()">Add attribute to filter</button>
+                    </div>
+                    <div class="mt-3" x-show="editAttributeFilters.length>0">
+                        <h3 class="mb-2">Attributes in filter:</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Attribute</th>
+                                    <th>Check</th>
+                                    <th>Value</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="(attribute, index) in editAttributeFilters" :key="index">
+                                    <tr>
+                                        <td x-text="attribute.attribute"></td>
+                                        <td>
+                                            <select x-model="attribute.type" @change="filterChangeTracker++">
+                                                <option value="contains">Contains</option>
+                                                <option value="null">Doesn't exist</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" x-model="attribute.value"
+                                                @change="filterChangeTracker++" />
+                                        </td>
+                                        <td>
+                                            <button @click="removeAttributeFilter(index)">Remove</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="applyFilter">
+                    <div x-show="editListFilters.length>0">
+                        <label x-show="changesToFilters">
+                            <span class="highlight">Changes have been made to the filter, do you
+                                want to apply them?</span>
+                            <button class="mt-3" @click="applyContactsFilters()">Apply filter(s)</button>
+                        </label>
+                    </div>
+                    <h4 class="mt-3" x-show="editListFilters.length==0">No active filters</h4>
+                </div>
             </div>
             <button class="mt-3" @click="openDealCreationModal()">Create Deals for all contacts</button>
             <p class="mt-3">Total number of contacts: <span x-text="totalNumberOfContacts"></span></p>

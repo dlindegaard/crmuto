@@ -123,10 +123,10 @@ export const app = {
         this.loadingText = 'Fetching contacts';
         const offset = page * this.contactsPerPage;
         let contactsResult;
-        if (this.activeFilters.length > 0) {
+        if (this.activeListFilters.length > 0) {
             this.loadingText = 'Filtering contacts. This may take a while.';
-            const inLists = this.activeFilters.filter(filter => filter.type === 'in').map(filter => filter.id);
-            const notInLists = this.activeFilters.filter(filter => filter.type === 'notIn').map(filter => filter.id);
+            const inLists = this.activeListFilters.filter(filter => filter.type === 'in').map(filter => filter.id);
+            const notInLists = this.activeListFilters.filter(filter => filter.type === 'notIn').map(filter => filter.id);
             contactsResult = await this.apiInstance?.getFilteredContacts(inLists, notInLists);
         } else {
             contactsResult = await this.apiInstance?.getContacts(this.contactsPerPage, offset);
@@ -169,8 +169,9 @@ export const app = {
             this.isLoading = true;
             this.loadingText = 'Creating deals';
 
-            let allContacts = [...this.contacts];
             if (this.totalPages > 1) {
+                let allContacts = [...this.contacts];
+
                 for (let page = 1; page < this.totalPages; page++) {
                     this.loadingText = `Creating deals for page ${page + 1} of ${this.totalPages}`;
                     const contactsResult = await this.apiInstance?.getContacts(this.contactsPerPage, page * this.contactsPerPage);
@@ -182,8 +183,8 @@ export const app = {
 
             // Create a deal for each contact
             let numberOfDealsCreated = 1;
-            for (const contact of allContacts) {
-                this.loadingText = `Creating deal ${numberOfDealsCreated++} of ${allContacts.length}`;
+            for (const contact of this.contacts) {
+                this.loadingText = `Creating deal ${numberOfDealsCreated++} of ${this.contacts.length}`;
                 await this.apiInstance?.createDeal("Automated deal", contact, { pipeline: this.dealPipelineId, deal_stage: this.dealStageId });
             }
 
@@ -193,49 +194,120 @@ export const app = {
             this.alert.show('Error creating deals');
         }
     },
-    //#region Filtering
-    activeFilters: [] as Array<{ id: string, name: string, type: 'in' | 'notIn' }>,
-    selectedFilter: '',
-    editFilters: [] as Array<{ id: string, name: string, type: 'in' | 'notIn' }>,
-    filterChangeTracker: 0,
-    get changesToFilters() {
-        // check if there are any changes to the filters
-        if (this.activeFilters.length !== this.editFilters.length) {
-            return true;
-        }
-        for (let i = 0; i < this.activeFilters.length; i++) {
-            const activeFilter = this.activeFilters[i];
-            const editFilter = this.editFilters[i];
-            if (activeFilter.id != editFilter.id || activeFilter.type != editFilter.type) {
-                return true;
+    get uniqueAttributes(): string[] {
+        let attributes: string[] = [];
+        for (const contact of this.contacts) {
+            for (const attribute in contact.attributes) {
+                if (!attributes.includes(attribute)) {
+                    attributes.push(attribute);
+                }
             }
         }
-        return false;
+        return attributes;
     },
-    addFilter: function () {
-        const list = this.lists.find(list => list.id == this.selectedFilter);
-        if (list) {
-            this.editFilters.push({ id: list.id, name: list.name, type: 'in' });
-        }
-    },
-    applyFilters: function () {
-        // duplicate the filters
-        this.activeFilters = this.editFilters.map(filter => ({ ...filter }));
-        this.fetchContacts();
-    },
-    removeFilter: function (index: number) {
-        this.editFilters.splice(index, 1);
-    },
+    //#region Filtering
     initContactsFiltering: function () {
         this.fetchLists();
         this.contactsViewState = 'filtering';
     },
     cancelContactsFiltering: function () {
         this.contactsViewState = 'normal';
-        this.editFilters = [];
-        this.activeFilters = [];
+        this.editListFilters = [];
+        this.activeListFilters = [];
         this.fetchContacts();
     },
+    applyContactsFilters: async function () {
+        // duplicate the filters
+        this.activeListFilters = this.editListFilters.map(filter => ({ ...filter }));
+        this.activeAttributeFilters = this.editAttributeFilters.map(filter => ({ ...filter }));
+        await this.fetchContacts();
+        this.isLoading = true;
+        this.loadingText = 'Filtering contacts by attributes';
+        this.filterContactsByAttributes();
+        this.isLoading = false;
+
+    },
+    get changesToFilters() {
+        // check if there are any changes to the filters
+        if (this.activeListFilters.length !== this.editListFilters.length) {
+            return true;
+        }
+        for (let i = 0; i < this.activeListFilters.length; i++) {
+            const activeFilter = this.activeListFilters[i];
+            const editFilter = this.editListFilters[i];
+            if (activeFilter.id != editFilter.id || activeFilter.type != editFilter.type) {
+                return true;
+            }
+        }
+        // check if there are any changes to attribute filters
+        if (this.activeAttributeFilters.length !== this.editAttributeFilters.length) {
+            return true;
+        }
+        for (let i = 0; i < this.activeAttributeFilters.length; i++) {
+            const activeFilter = this.activeAttributeFilters[i];
+            const editFilter = this.editAttributeFilters[i];
+            if (activeFilter.attribute != editFilter.attribute || activeFilter.type != editFilter.type || activeFilter.value != editFilter.value) {
+                return true;
+            }
+        }
+        return false;
+    },
+    //#region List filtering    
+    selectedFilter: '',
+    activeListFilters: [] as Array<{ id: string, name: string, type: 'in' | 'notIn' }>,
+    editListFilters: [] as Array<{ id: string, name: string, type: 'in' | 'notIn' }>,
+    filterChangeTracker: 0,
+    addListFilter: function () {
+        const list = this.lists.find(list => list.id == this.selectedFilter);
+        if (list) {
+            this.editListFilters.push({ id: list.id, name: list.name, type: 'in' });
+        }
+    },
+    removeListFilter: function (index: number) {
+        this.editListFilters.splice(index, 1);
+    },
+    //#endregion
+    //#region Attribute filtering
+    selectedAttribute: "" as string,
+    editAttributeFilters: [] as Array<{ attribute: string, type: 'contains' | 'null' | 'exists', value: string }>,
+    activeAttributeFilters: [] as Array<{ attribute: string, type: 'contains' | 'null' | 'exists', value: string }>,
+    addAttributeToFilter: function () {
+        this.editAttributeFilters.push({ attribute: this.selectedAttribute, type: 'contains', value: '' });
+    },
+    removeAttributeFilter: function (index: number) {
+        this.editAttributeFilters.splice(index, 1);
+    },
+    filterContactsByAttributes: function () {
+        let filteredContacts = [];
+        for (const contact of this.contacts) {
+            let contactMatchesFilters = true;
+            for (const filter of this.activeAttributeFilters) {
+                switch (filter.type) {
+                    case 'contains':
+                        if (contact.attributes[filter.attribute] == undefined || !contact.attributes[filter.attribute].includes(filter.value)) {
+                            contactMatchesFilters = false;
+                        }
+                        break;
+                    case 'null':
+                        if (contact.attributes[filter.attribute] != null) {
+                            contactMatchesFilters = false;
+                        }
+                        break;
+                    case 'exists':
+                        if (contact.attributes[filter.attribute] == null) {
+                            contactMatchesFilters = false;
+                        }
+                        break;                        
+                }
+            }
+            if (contactMatchesFilters) {
+                filteredContacts.push(contact);
+            }
+        }
+        this.contacts = filteredContacts;
+        this.totalNumberOfContacts = filteredContacts.length;
+    },
+    //#endregion
     //#endregion
     //#endregion
     //#region Lists
@@ -253,9 +325,9 @@ export const app = {
     },
     seeContactsOfList: function (id: string, name: string) {
         this.initContactsFiltering();
-        this.editFilters.push({ id: id, name: name, type: 'in' });
+        this.editListFilters.push({ id: id, name: name, type: 'in' });
         this.activeView = 'contacts-view';
-        this.applyFilters(); // Apply the filters and fetch the contacts
+        this.applyContactsFilters(); // Apply the filters and fetch the contacts
     },
     //#endregion        
     //#region Pipelines
