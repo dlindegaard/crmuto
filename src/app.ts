@@ -194,6 +194,32 @@ export const app = {
             this.alert.show('Error creating deals');
         }
     },
+    addContactsToListModalVisible: false,
+    listId: "" as string,    
+    openAddContactsToListModal() {        
+        this.addContactsToListModalVisible = true;
+    },
+    addContactsToList: async function () {
+        if (this.listId == "") {
+            this.alert.show("Please select a list");
+            return;
+        }
+        let list = this.lists.find(list => list.id == this.listId);
+        if (!list) {
+            this.alert.show("Please select a valid list");
+            return;
+        }
+
+        try {
+            this.isLoading = true;
+            this.loadingText = 'Adding contacts to list';            
+            await this.apiInstance?.addContactToList(this.contacts, list);
+            this.isLoading = false;
+            this.alert.show('Contacts added to list successfully');
+        } catch (error) {
+            this.alert.show('Error adding contacts to list');
+        }
+    },
     get uniqueAttributes(): string[] {
         let attributes: string[] = [];
         for (const contact of this.contacts) {
@@ -204,7 +230,7 @@ export const app = {
             }
         }
         return attributes;
-    },
+    },    
     //#region Filtering
     initContactsFiltering: function () {
         this.fetchLists();

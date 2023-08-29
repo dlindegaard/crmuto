@@ -9,6 +9,7 @@ interface CrmAPI {
     createDeal(name: string, contact?: Contact, attributes?: { [key: string]: string }): Promise<Deal>;
     getDeal(id: string): Promise<Deal>;
     getPipelines(): Promise<Pipeline[]>;
+    addContactToList(contact: Contact | Contact[], list: List): Promise<void>;
 }
 
 type CrmAPIInfo = { name: string, _constructor: { new(apiKey: string, proxyUrl: string): CrmAPI; } };

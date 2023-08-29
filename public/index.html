@@ -143,6 +143,7 @@
                 </div>
             </div>
             <button class="mt-3" @click="openDealCreationModal()">Create Deals for all contacts</button>
+            <button class="mt-3" @click="openAddContactsToListModal()">Add all contacts to a list</button>
             <p class="mt-3">Total number of contacts: <span x-text="totalNumberOfContacts"></span></p>
             <table class="mt-3">
                 <thead>
@@ -247,6 +248,19 @@
                     @click="dealCreationModalVisible=false;createDealsForAllContacts()">Create deals</button>
             </div>
         </div>
+        <div x-show="addContactsToListModalVisible" class="modal">
+            <div class="modal-content">
+                <label for="listId">Choose list</label>
+                <select id="listId" x-model="listId">
+                    <option value="" disabled selected>Select a list</option>
+                    <template x-for="list in lists">
+                        <option x-text="list.name" :value="list.id"></option>
+                    </template>
+                </select>
+                <br>
+                <button class="mt-3" x-show="listId!=''" @click="addContactsToListModalVisible=false;addContactsToList()">Add
+                    contacts to list</button>
+            </div>
     </div>
 </body>
 

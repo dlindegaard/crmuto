@@ -1,8 +1,13 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
+const bodyParser = require('body-parser');  // If you're using body-parser package
 
 const app = express();
+
+// Enable CORS for all routes
+app.use(cors());
+app.use(bodyParser.json());
 
 app.use('/:target', (req, res, next) => {
     const targetAPI = req.params.target;
@@ -22,6 +27,12 @@ app.use('/:target', (req, res, next) => {
                     proxyReq.removeHeader(header);
                 }
             });
+            if (req.body && req.body!=="{}") {
+                const bodyData = JSON.stringify(req.body);
+                proxyReq.setHeader('Content-Type', 'application/json');
+                proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+                proxyReq.write(bodyData);
+            }
         },
         onError: function (err, req, res) { // handling proxy errors
             res.status(500).send({
@@ -42,8 +53,7 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something broke!');
 });
 
-// Enable CORS for all routes
-app.use(cors());
+
 
 const port = 5000;
 app.listen(port, () => console.log(`Proxy server running on port ${port}`));
