@@ -65,7 +65,9 @@ class BrevoAPI implements CrmAPI {
         await this.delayIfNeeded();
 
         const headers = {
-            'api-key': this.apiKey
+            'Accept': 'application/json',
+            'api-key': this.apiKey,
+            'content-type': 'application/json'
         };
 
         let data: any = {

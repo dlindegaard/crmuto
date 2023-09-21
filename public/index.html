@@ -116,10 +116,11 @@
                                             <select x-model="attribute.type" @change="filterChangeTracker++">
                                                 <option value="contains">Contains</option>
                                                 <option value="null">Doesn't exist</option>
+                                                <option value="not empty">Not empty</option>
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="text" x-model="attribute.value"
+                                            <input x-show="['null','not empty'].indexOf(attribute.type)==-1" type="text" x-model="attribute.value"
                                                 @change="filterChangeTracker++" />
                                         </td>
                                         <td>

@@ -295,8 +295,8 @@ export const app = {
     //#endregion
     //#region Attribute filtering
     selectedAttribute: "" as string,
-    editAttributeFilters: [] as Array<{ attribute: string, type: 'contains' | 'null' | 'exists', value: string }>,
-    activeAttributeFilters: [] as Array<{ attribute: string, type: 'contains' | 'null' | 'exists', value: string }>,
+    editAttributeFilters: [] as Array<{ attribute: string, type: 'contains' | 'null' | 'exists' | 'not empty', value: string }>,
+    activeAttributeFilters: [] as Array<{ attribute: string, type: 'contains' | 'null' | 'exists' | 'not empty', value: string }>,
     addAttributeToFilter: function () {
         this.editAttributeFilters.push({ attribute: this.selectedAttribute, type: 'contains', value: '' });
     },
@@ -323,7 +323,13 @@ export const app = {
                         if (contact.attributes[filter.attribute] == null) {
                             contactMatchesFilters = false;
                         }
-                        break;                        
+                        break;      
+                    case 'not empty':
+                        // Not null, not empty string, not string with only spaces
+                        if (contact.attributes[filter.attribute] == null || contact.attributes[filter.attribute].trim() == "") {
+                            contactMatchesFilters = false;
+                        }
+                        break;                  
                 }
             }
             if (contactMatchesFilters) {
