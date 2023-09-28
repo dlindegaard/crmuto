@@ -5,6 +5,9 @@ The first CRM that is partially supported is [Brevo](https://www.brevo.com/).
 
 When using crmuto, all data is handled between your local computer and the CRM system via the API. No data is sent to any third party.
 ## Current features
+### Version 0.8
+- Changed the way naming of deals are handled. Now the deal will have the name of the contact unless a the contact has no name, in which case the deal will be "New deal"
+- Fixed retrieval of lists from Brevo
 ### Version 0.7
 - Fixed bug related to creating deals (first occurrence after V0.6)
 - Added new filter option for attributes (Not empty)

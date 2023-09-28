@@ -162,7 +162,7 @@ class BrevoAPI implements CrmAPI {
         do {
             await this.delayIfNeeded();
             try {
-                const url = `${this.url}/contacts/lists?limit=50&offset=${lists.length == 0 ? 0 : lists.length - 1}&sort=desc`;
+                const url = `${this.url}/contacts/lists?limit=50&offset=${lists.length == 0 ? 0 : lists.length}&sort=desc`;
 
                 // Use Fetch API to get the data
                 const response = await fetch(url, {
@@ -194,15 +194,13 @@ class BrevoAPI implements CrmAPI {
                 }
 
                 count = data.count;
-
-                return lists;
             } catch (error) {
                 console.error('Error:', error);
                 throw new Error('Error:' + error);
             }
         } while (lists.length < count);
 
-        return [];
+        return lists;
     }
     getList(id: string): Promise<List> {
         throw new Error('Method not implemented.');

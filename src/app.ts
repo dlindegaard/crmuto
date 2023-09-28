@@ -185,7 +185,16 @@ export const app = {
             let numberOfDealsCreated = 1;
             for (const contact of this.contacts) {
                 this.loadingText = `Creating deal ${numberOfDealsCreated++} of ${this.contacts.length}`;
-                await this.apiInstance?.createDeal("Automated deal", contact, { pipeline: this.dealPipelineId, deal_stage: this.dealStageId });
+                let nameOfDeal = "New deal";
+                if(contact.firstName) {
+                    nameOfDeal = contact.firstName + " ";
+                }
+                if(contact.lastName) {
+                    nameOfDeal += contact.lastName;
+                }            
+                // remove spaces after the name
+                nameOfDeal = nameOfDeal.trim();
+                await this.apiInstance?.createDeal(nameOfDeal, contact, { pipeline: this.dealPipelineId, deal_stage: this.dealStageId });
             }
 
             this.isLoading = false;
